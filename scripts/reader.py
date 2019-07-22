@@ -13,6 +13,20 @@ headers = [
     'COMMENT'
 ]
 
+POSSIBLE_TAGS = [
+    'QA',
+    'TEST',
+    'CODE',
+    'DEV',
+    'OTHER',
+    'REVIEW',
+    'FIX_REVIEW',
+    'REQ',
+    'MERGE',
+    'SPEC',
+    'DEPLOY'
+]
+
 def parse_cli_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -40,10 +54,14 @@ if __name__ == '__main__':
             for h, v in zip(headers, row):
                 line_result[h] = v
             
+            # sometimes this key isn't found
+            if not 'COMMENT' in line_result:
+                continue
+
             split_comment = line_result['COMMENT'].split(':')
             tag = split_comment[0]
             # checking only tagged comments
-            if tag and len(split_comment)>1:
+            if tag and tag in POSSIBLE_TAGS:
                 line_result['TYPE'] = tag
                 
                 time_delta = datetime.strptime(line_result['TIME2'], FMT) - datetime.strptime(line_result['TIME1'], FMT) 
@@ -58,6 +76,9 @@ if __name__ == '__main__':
  
     for t, s in seconds_per_type.items():
         percents_per_type[t] = s/seconds_at_all
+        
+    # I wrote wrong tag =(
+    percents_per_type['CODE'] += percents_per_type.pop('DEV', None)
                 
     print('seconds_at_all', end='\n')
     print(seconds_at_all, end='\n')
