@@ -40,16 +40,16 @@ if __name__ == '__main__':
             for h, v in zip(headers, row):
                 line_result[h] = v
             
-            time_delta = datetime.strptime(line_result['TIME2'], FMT) - datetime.strptime(line_result['TIME1'], FMT) 
-            secons = time_delta.seconds   
-            line_result['TIME_DELTA'] = secons
-            seconds_at_all += secons
-            
             split_comment = line_result['COMMENT'].split(':')
             tag = split_comment[0]
             # checking only tagged comments
             if tag and len(split_comment)>1:
                 line_result['TYPE'] = tag
+                
+                time_delta = datetime.strptime(line_result['TIME2'], FMT) - datetime.strptime(line_result['TIME1'], FMT) 
+                secons = time_delta.seconds   
+                line_result['TIME_DELTA'] = secons
+                seconds_at_all += secons
                 
                 current_time_delta = seconds_per_type.get(line_result['TYPE'], 0)
                 seconds_per_type[line_result['TYPE']] = current_time_delta + line_result['TIME_DELTA']
