@@ -107,12 +107,11 @@ if __name__ == '__main__':
     if 'CODE' in percents_per_type:
         percents_per_type['CODE'] = percents_per_type.pop('DEV', None)
                 
-    print('seconds_at_all', end='\n')
+    print('====================TOTAL====================', end='\n')
     print(seconds_at_all, end='\n')
-    print('seconds_per_type', end='\n')
-    print(seconds_per_type, end='\n')
-    print('percents_per_type', end='\n')
+    print('====================TAGS=====================', end='\n')
     for t, p in sorted(percents_per_type.items(), key=lambda x: x[1], reverse=True):
-        print(t+" "+"{:.2%}".format(p), end='\n')
+        s = seconds_per_type[t]
+        print(t+" "+"{:.2%}".format(p)+" "+"{} seconds".format(s), end='\n')
   
     exit(0)
