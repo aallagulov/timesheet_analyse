@@ -1,9 +1,10 @@
 import argparse
-from argparse import ArgumentParser
 import csv
 from datetime import datetime
+from datetime import timedelta
 
-FMT = '%H:%M'
+DAY_OF_YEAR_FMT = '%Y-%m-%d'
+DAY_TIME_FMT = DAY_OF_YEAR_FMT + ' ' + '%H:%M'
 
 headers = [
     'DATE',
@@ -33,6 +34,14 @@ def parse_cli_args():
         '--csv',
         help='Path to CSV file.',
         required=True)
+    parser.add_argument(
+        '--start',
+        help='Start date for collecting statistic',
+        required=False)
+    parser.add_argument(
+        '--end',
+        help='End date for collecting statistic',
+        required=False)
     
     cli_args = parser.parse_args()
     return cli_args
@@ -41,6 +50,15 @@ if __name__ == '__main__':
     cli_args = parse_cli_args()
     fname = cli_args.csv
     
+    start_dt = datetime.min
+    if cli_args.start:
+        # the start of that day
+        start_dt = datetime.strptime(cli_args.start, DAY_OF_YEAR_FMT)
+    end_dt = datetime.max
+    if cli_args.end:
+        # the end of that day
+        end_dt = datetime.strptime(cli_args.end, DAY_OF_YEAR_FMT) + timedelta(days=1)
+
     seconds_at_all = 0
     seconds_per_type = {}
     percents_per_type = {}
@@ -63,8 +81,16 @@ if __name__ == '__main__':
             # checking only tagged comments
             if tag and tag in POSSIBLE_TAGS:
                 line_result['TYPE'] = tag
+ 
+                dt1 = datetime.strptime(line_result['DATE'] + ' ' + line_result['TIME1'], DAY_TIME_FMT)
+                dt2 = datetime.strptime(line_result['DATE'] + ' ' + line_result['TIME2'], DAY_TIME_FMT)
                 
-                time_delta = datetime.strptime(line_result['TIME2'], FMT) - datetime.strptime(line_result['TIME1'], FMT) 
+                if start_dt > dt1:
+                    continue
+                if end_dt < dt2:
+                    continue
+
+                time_delta = dt2 - dt1 
                 secons = time_delta.seconds   
                 line_result['TIME_DELTA'] = secons
                 seconds_at_all += secons
@@ -78,7 +104,8 @@ if __name__ == '__main__':
         percents_per_type[t] = s/seconds_at_all
         
     # I wrote wrong tag =(
-    percents_per_type['CODE'] += percents_per_type.pop('DEV', None)
+    if 'CODE' in percents_per_type:
+        percents_per_type['CODE'] = percents_per_type.pop('DEV', None)
                 
     print('seconds_at_all', end='\n')
     print(seconds_at_all, end='\n')
